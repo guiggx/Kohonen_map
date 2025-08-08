@@ -22,8 +22,8 @@ def main():
     som = SOM(dim1=20, dim2=20, input_dim=3, sigma=1.5, eta=0.5, sigma_kernel=0.5)
 
     # 3. Train the SOM and get the cluster labels
-    print("Training the SOM and getting cluster labels...")
-    labels = som.fit_predict(data, n_it=100)
+    print("Training the SOM...")
+    labels = som.fit_predict(data, n_it=100, verbose=True)
     print("Training complete.")
 
     # 4. Visualize the results
