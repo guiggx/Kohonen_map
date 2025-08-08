@@ -112,6 +112,37 @@ class SOM():
                     for j in range(self.dim2):
                         self.params[i][j] = self.params[i][j] + self.eta * h(i, j, z[0], z[1], self.sigma) * (X_train[l] - self.params[i][j])
 
+    def predict(self, X):
+        """
+        Finds the winning neuron for each input vector in X.
+
+        Parameters:
+        - X: A dataset of input vectors.
+
+        Returns:
+        - A NumPy array of winning neuron IDs (raveled indices).
+        """
+        winner_ids = []
+        for x_i in X:
+            winner_i, winner_j = self.winner(x_i)
+            winner_id = winner_i * self.dim2 + winner_j
+            winner_ids.append(winner_id)
+        return np.array(winner_ids)
+
+    def fit_predict(self, X_train, n_it):
+        """
+        Trains the SOM and returns the winning neuron for each input vector.
+
+        Parameters:
+        - X_train: The training dataset.
+        - n_it: The number of training iterations.
+
+        Returns:
+        - A NumPy array of winning neuron IDs for the training data.
+        """
+        self.fit(X_train, n_it)
+        return self.predict(X_train)
+
     def _get_neighbors(self, i, j):
         """
         Get the list of 8-way neighbors for a neuron (i,j).
