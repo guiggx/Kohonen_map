@@ -21,9 +21,9 @@ def main():
     # The input_dim should match the number of features in the data
     som = SOM(dim1=20, dim2=20, input_dim=3, sigma=1.5, eta=0.5, sigma_kernel=0.5)
 
-    # 3. Train the SOM
-    print("Training the SOM...")
-    som.fit(data, n_it=100)
+    # 3. Train the SOM and get the cluster labels
+    print("Training the SOM and getting cluster labels...")
+    labels = som.fit_predict(data, n_it=100)
     print("Training complete.")
 
     # 4. Visualize the results
@@ -42,16 +42,20 @@ def main():
     print("Plotting Distance Map...")
     som.plot_distance_map()
 
-    # You can also map the data points to the SOM
-    mapped = np.array([som.winner(d) for d in data])
+    # 5. Visualize the data points mapped to the SOM
+
+    # Convert 1D labels back to 2D coordinates for plotting
+    mapped_i = labels // som.dim2
+    mapped_j = labels % som.dim2
 
     plt.figure(figsize=(10, 10))
-    plt.title('Data points mapped to SOM')
+    plt.title('Data points mapped to SOM (colored by cluster ID)')
     # Plot the U-matrix as a background
     plt.imshow(som.u_matrix(), cmap='gray', interpolation='none', origin='lower')
 
-    # Plot the mapped data points
-    plt.scatter(mapped[:, 1], mapped[:, 0], c=data, s=20, marker='o')
+    # Plot the mapped data points, colored by their cluster ID
+    plt.scatter(mapped_j, mapped_i, c=labels, cmap='viridis', s=20, marker='o')
+    plt.colorbar(label='Cluster ID')
     plt.show()
 
 
