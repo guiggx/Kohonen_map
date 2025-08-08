@@ -97,20 +97,35 @@ class SOM():
                         b = j
             return a, b
 
-    def fit(self, X_train, n_it):
+    def fit(self, X_train, n_it, verbose=False):
         """
         Train the SOM.
+
+        Parameters:
+        - X_train: The training dataset.
+        - n_it: The number of training iterations.
+        - verbose: If True, prints the quantization error at each iteration.
         """
         debut = time.time()
         for t in range(n_it):
-            if t > 0 and n_it > 10 and t % (n_it / 10.0) == 0:
-                act = time.time()
-                print(f"{(t * 100.0) / n_it:.1f}%    {act - debut:.2f}s")
+            # Update weights for each input vector
             for l in range(len(X_train)):
                 z = self.winner(X_train[l])
                 for i in range(self.dim1):
                     for j in range(self.dim2):
                         self.params[i][j] = self.params[i][j] + self.eta * h(i, j, z[0], z[1], self.sigma) * (X_train[l] - self.params[i][j])
+
+            # Print progress if verbose is True
+            if verbose:
+                quantization_error = 0
+                for x_i in X_train:
+                    winner_i, winner_j = self.winner(x_i)
+                    winner_weights = self.params[winner_i, winner_j, :]
+                    quantization_error += fast_norm(x_i - winner_weights)
+
+                quantization_error /= len(X_train)
+                act = time.time()
+                print(f"Iteration {t + 1}/{n_it} | Quantization Error: {quantization_error:.4f} | Time: {act - debut:.2f}s")
 
     def predict(self, X):
         """
@@ -129,18 +144,19 @@ class SOM():
             winner_ids.append(winner_id)
         return np.array(winner_ids)
 
-    def fit_predict(self, X_train, n_it):
+    def fit_predict(self, X_train, n_it, verbose=False):
         """
         Trains the SOM and returns the winning neuron for each input vector.
 
         Parameters:
         - X_train: The training dataset.
         - n_it: The number of training iterations.
+        - verbose: If True, prints the quantization error at each iteration.
 
         Returns:
         - A NumPy array of winning neuron IDs for the training data.
         """
-        self.fit(X_train, n_it)
+        self.fit(X_train, n_it, verbose=verbose)
         return self.predict(X_train)
 
     def _get_neighbors(self, i, j):
