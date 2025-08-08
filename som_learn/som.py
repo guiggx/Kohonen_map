@@ -48,10 +48,13 @@ class SOM():
         self.input_dim = input_dim
         self.sigma = sigma
         self.eta = eta
+        self._is_default_kernel = False
 
         if kernel is None:
             # The default kernel is Gaussian
             self.kernel = lambda x, y: gaussian_kernel(x, y, sigma=sigma_kernel)
+            self._is_default_kernel = True
+            self.sigma_kernel = sigma_kernel
         else:
             self.kernel = kernel
 
@@ -62,17 +65,37 @@ class SOM():
         """
         Finds the winning neuron for a given input vector X.
         """
-        a = 0
-        b = 0
-        s = 0
-        for i in range(self.dim1):
-            for j in range(self.dim2):
-                sc = self.kernel(X, self.params[i][j])
-                if sc > s:
-                    s = sc
-                    a = i
-                    b = j
-        return a, b
+        if self._is_default_kernel:
+            # Vectorized implementation for the default Gaussian kernel
+            # Maximizing the kernel is equivalent to minimizing the squared Euclidean distance
+
+            # Reshape weights and input vector for broadcasting
+            weights_flat = self.params.reshape(-1, self.input_dim)
+
+            # Calculate squared Euclidean distances
+            distances_sq = np.sum((weights_flat - X)**2, axis=1)
+
+            # Find the index of the minimum distance
+            winner_idx = np.argmin(distances_sq)
+
+            # Convert 1D index back to 2D grid coordinates
+            winner_i = winner_idx // self.dim2
+            winner_j = winner_idx % self.dim2
+
+            return winner_i, winner_j
+        else:
+            # Fallback to the loop-based implementation for custom kernels
+            a = 0
+            b = 0
+            s = 0
+            for i in range(self.dim1):
+                for j in range(self.dim2):
+                    sc = self.kernel(X, self.params[i][j])
+                    if sc > s:
+                        s = sc
+                        a = i
+                        b = j
+            return a, b
 
     def fit(self, X_train, n_it):
         """
