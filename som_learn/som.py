@@ -107,13 +107,22 @@ class SOM():
         - verbose: If True, prints the quantization error at each iteration.
         """
         debut = time.time()
+
+        # Pre-calculate neuron coordinates
+        i_coords, j_coords = np.indices((self.dim1, self.dim2))
+
         for t in range(n_it):
             # Update weights for each input vector
-            for l in range(len(X_train)):
-                z = self.winner(X_train[l])
-                for i in range(self.dim1):
-                    for j in range(self.dim2):
-                        self.params[i][j] = self.params[i][j] + self.eta * h(i, j, z[0], z[1], self.sigma) * (X_train[l] - self.params[i][j])
+            for x_sample in X_train:
+                z = self.winner(x_sample)
+
+                # Vectorized neighborhood function calculation
+                dist_sq_to_winner = (i_coords - z[0])**2 + (j_coords - z[1])**2
+                h_matrix = np.exp(-dist_sq_to_winner / (2 * self.sigma**2))
+                h_matrix_expanded = h_matrix[:, :, np.newaxis]
+
+                # Vectorized weight update
+                self.params += self.eta * h_matrix_expanded * (x_sample - self.params)
 
             # Print progress if verbose is True
             if verbose:
