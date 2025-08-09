@@ -29,7 +29,7 @@ def h(i, j, z1, z2, sigma):
     return np.exp(-((i-z1)**2 + (j-z2)**2) / (2*sigma**2))
 
 class SOM():
-    def __init__(self, dim1=10, dim2=10, input_dim=3, sigma=1, eta=0.1, kernel=None, sigma_kernel=10):
+    def __init__(self, dim1=10, dim2=10, input_dim=3, sigma=1, eta=0.1, kernel=None, sigma_kernel=10, decay_strategy='exponential'):
         """
         Initialize the SOM.
 
@@ -37,17 +37,19 @@ class SOM():
         - dim1: height of the map
         - dim2: width of the map
         - input_dim: dimension of the input vectors
-        - sigma: radius of the neighborhood function
-        - eta: learning rate
+        - sigma: initial radius of the neighborhood function
+        - eta: initial learning rate
         - kernel: a function that computes similarity between two vectors.
                   If None, a Gaussian kernel is used.
         - sigma_kernel: sigma for the default Gaussian kernel.
+        - decay_strategy: 'exponential', 'linear', or None.
         """
         self.dim1 = dim1
         self.dim2 = dim2
         self.input_dim = input_dim
         self.sigma = sigma
         self.eta = eta
+        self.decay_strategy = decay_strategy
         self._is_default_kernel = False
 
         if kernel is None:
@@ -112,17 +114,31 @@ class SOM():
         i_coords, j_coords = np.indices((self.dim1, self.dim2))
 
         for t in range(n_it):
+            # Handle decay strategy
+            if self.decay_strategy == 'linear':
+                sigma_t = self.sigma * (1 - t / n_it)
+                eta_t = self.eta * (1 - t / n_it)
+            elif self.decay_strategy == 'exponential':
+                # Exponential decay
+                k = 5.0 # Decay constant
+                sigma_t = self.sigma * np.exp(-t * k / n_it)
+                eta_t = self.eta * np.exp(-t * k / n_it)
+            else: # No decay
+                sigma_t = self.sigma
+                eta_t = self.eta
+
             # Update weights for each input vector
             for x_sample in X_train:
                 z = self.winner(x_sample)
 
                 # Vectorized neighborhood function calculation
                 dist_sq_to_winner = (i_coords - z[0])**2 + (j_coords - z[1])**2
-                h_matrix = np.exp(-dist_sq_to_winner / (2 * self.sigma**2))
+                # Add a small epsilon to sigma_t to avoid division by zero if it decays to 0
+                h_matrix = np.exp(-dist_sq_to_winner / (2 * (sigma_t**2) + 1e-8))
                 h_matrix_expanded = h_matrix[:, :, np.newaxis]
 
                 # Vectorized weight update
-                self.params += self.eta * h_matrix_expanded * (x_sample - self.params)
+                self.params += eta_t * h_matrix_expanded * (x_sample - self.params)
 
             # Print progress if verbose is True
             if verbose:
