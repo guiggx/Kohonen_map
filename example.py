@@ -19,7 +19,7 @@ def main():
 
     # 2. Initialize the SOM
     # The input_dim should match the number of features in the data
-    som = SOM(dim1=20, dim2=20, input_dim=3, sigma=1.5, eta=0.5, sigma_kernel=0.5)
+    som = SOM(dim1=20, dim2=20, input_dim=3, sigma=1.5, eta=0.5, sigma_kernel=0.5, decay_strategy='exponential')
 
     # 3. Train the SOM and get the cluster labels
     print("Training the SOM...")
