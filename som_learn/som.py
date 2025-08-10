@@ -8,6 +8,7 @@ Created on Fri Feb 24 18:31:29 2017
 import numpy as np
 import time
 import matplotlib.pyplot as plt
+import pickle
 
 
 def fast_norm(x):
@@ -53,12 +54,13 @@ class SOM():
         self._is_default_kernel = False
 
         if kernel is None:
-            # The default kernel is Gaussian
-            self.kernel = lambda x, y: gaussian_kernel(x, y, sigma=sigma_kernel)
+            # The default kernel is Gaussian; we'll use the vectorized winner method.
+            self.kernel = None
             self._is_default_kernel = True
             self.sigma_kernel = sigma_kernel
         else:
             self.kernel = kernel
+            self._is_default_kernel = False
 
         # Initialize weights randomly
         self.params = np.random.rand(self.dim1, self.dim2, self.input_dim)
@@ -183,6 +185,30 @@ class SOM():
         """
         self.fit(X_train, n_it, verbose=verbose)
         return self.predict(X_train)
+
+    def save(self, filepath):
+        """
+        Saves the trained SOM to a file using pickle.
+
+        Parameters:
+        - filepath: The path to the file where the SOM will be saved.
+        """
+        with open(filepath, 'wb') as f:
+            pickle.dump(self, f)
+
+    @classmethod
+    def load(cls, filepath):
+        """
+        Loads a trained SOM from a file.
+
+        Parameters:
+        - filepath: The path to the file where the SOM is saved.
+
+        Returns:
+        - An instance of the SOM class.
+        """
+        with open(filepath, 'rb') as f:
+            return pickle.load(f)
 
     def _get_neighbors(self, i, j):
         """
