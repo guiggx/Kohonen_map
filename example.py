@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from som_learn.som import SOM
 from sklearn.datasets import make_blobs
 from sklearn.preprocessing import MinMaxScaler
+import os
+from numpy.testing import assert_array_equal
 
 def main():
     """
@@ -57,6 +59,28 @@ def main():
     plt.scatter(mapped_j, mapped_i, c=labels, cmap='viridis', s=20, marker='o')
     plt.colorbar(label='Cluster ID')
     plt.show()
+
+    # 6. Test save and load functionality
+    print("\nTesting save and load functionality...")
+    filepath = 'som.pkl'
+    som.save(filepath)
+
+    # Check if file exists
+    assert os.path.exists(filepath)
+    print(f"SOM saved to {filepath}")
+
+    # Load the SOM from the file
+    loaded_som = SOM.load(filepath)
+    print("SOM loaded successfully.")
+
+    # Verify that the loaded SOM gives the same predictions
+    loaded_labels = loaded_som.predict(data)
+    assert_array_equal(labels, loaded_labels)
+    print("Verification successful: Loaded SOM predictions match original SOM predictions.")
+
+    # Clean up the created file
+    os.remove(filepath)
+    print(f"Cleaned up {filepath}.")
 
 
 if __name__ == '__main__':
