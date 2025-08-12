@@ -279,5 +279,35 @@ class SOM():
         plt.colorbar(label='Average distance to other neurons')
         plt.show()
 
+    def plot_density(self, X_test, title='Density Map'):
+        """
+        Calculates and plots the density of a test set on the SOM.
+
+        The density, or hit map, shows how many data points from the test set
+        are assigned to each neuron on the map.
+
+        Parameters:
+        - X_test: A dataset of input vectors to test.
+        - title: The title for the plot.
+        """
+        # Get the raveled indices of the winners for the test set
+        winner_ids = self.predict(X_test)
+
+        # Create a 1D histogram of the winner IDs
+        num_neurons = self.dim1 * self.dim2
+        hits = np.zeros(num_neurons)
+
+        # Use np.add.at for an efficient way to count hits for each neuron
+        np.add.at(hits, winner_ids, 1)
+
+        # Reshape the 1D hits array into a 2D density map
+        density_map = hits.reshape((self.dim1, self.dim2))
+
+        # Plot the density map
+        plt.figure(figsize=(8, 8))
+        plt.imshow(density_map, cmap='hot')
+        plt.title(title)
+        plt.colorbar(label='Number of hits')
+        plt.show()
 
 
