@@ -44,6 +44,10 @@ def main():
     print("Plotting Distance Map...")
     som.plot_distance_map()
 
+    # Plot the Density Map (Hit Map)
+    print("Plotting Density Map...")
+    som.plot_density(data)
+
     # 5. Visualize the data points mapped to the SOM
 
     # Convert 1D labels back to 2D coordinates for plotting
